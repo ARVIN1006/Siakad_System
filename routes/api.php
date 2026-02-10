@@ -5,6 +5,11 @@ use App\Http\Controllers\Api\Student\ProfileController;
 use App\Http\Controllers\Api\Student\KrsController;
 use App\Http\Controllers\Api\Lecturer\GradeController;
 use App\Http\Controllers\Api\Admin\UserController;
+use App\Http\Controllers\Api\Admin\FacultyController;
+use App\Http\Controllers\Api\Admin\MajorController;
+use App\Http\Controllers\Api\Admin\CourseController;
+use App\Http\Controllers\Api\Admin\SemesterController;
+use App\Http\Controllers\Api\Admin\ClassController;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 
@@ -37,7 +42,13 @@ Route::middleware('auth:sanctum')->group(function () {
 
         // Admin routes
         Route::prefix('admin')->group(function () {
+            Route::get('roles', [UserController::class, 'roles']);
             Route::apiResource('users', UserController::class);
+            Route::apiResource('faculties', FacultyController::class);
+            Route::apiResource('majors', MajorController::class);
+            Route::apiResource('courses', CourseController::class);
+            Route::apiResource('semesters', SemesterController::class);
+            Route::apiResource('classes', ClassController::class);
         }
         );
     });
