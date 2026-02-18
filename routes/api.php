@@ -10,6 +10,8 @@ use App\Http\Controllers\Api\Admin\MajorController;
 use App\Http\Controllers\Api\Admin\CourseController;
 use App\Http\Controllers\Api\Admin\SemesterController;
 use App\Http\Controllers\Api\Admin\ClassController;
+use App\Http\Controllers\Api\Student\TuitionController;
+use App\Http\Controllers\Api\Lecturer\KrsApprovalController;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 
@@ -29,6 +31,7 @@ Route::middleware('auth:sanctum')->group(function () {
             Route::get('/krs', [KrsController::class , 'index']);
             Route::post('/krs', [KrsController::class , 'store']);
             Route::get('/khs', [KrsController::class , 'khs']);
+            Route::get('/tuition', [TuitionController::class, 'index']);
         }
         );
 
@@ -36,7 +39,11 @@ Route::middleware('auth:sanctum')->group(function () {
         Route::prefix('lecturer')->group(function () {
             Route::get('/classes', [GradeController::class , 'classes']);
             Route::get('/classes/{id}/students', [GradeController::class , 'students']);
+            Route::get('/classes/{id}/students', [GradeController::class , 'students']);
             Route::post('/grades', [GradeController::class , 'store']);
+            Route::get('/krs-approval', [KrsApprovalController::class, 'index']);
+            Route::post('/krs-approval/{id}/approve', [KrsApprovalController::class, 'approve']);
+            Route::post('/krs-approval/{id}/reject', [KrsApprovalController::class, 'reject']);
         }
         );
 
