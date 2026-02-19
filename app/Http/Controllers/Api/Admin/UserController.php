@@ -3,6 +3,8 @@
 namespace App\Http\Controllers\Api\Admin;
 
 use App\Http\Controllers\Controller;
+use App\Http\Requests\Admin\StoreUserRequest;
+use App\Http\Requests\Admin\UpdateUserRequest;
 use App\Models\User;
 use App\Models\Role;
 use App\Models\Student;
@@ -10,7 +12,6 @@ use App\Models\Lecturer;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Hash;
-use Illuminate\Validation\Rule;
 
 class UserController extends Controller
 {
@@ -30,21 +31,8 @@ class UserController extends Controller
         ]);
     }
 
-    public function store(Request $request)
+    public function store(StoreUserRequest $request)
     {
-        $request->validate([
-            'username' => 'required|string|unique:users',
-            'name' => 'required|string',
-            'email' => 'required|email|unique:users',
-            'password' => 'required|string|min:6',
-            'role_id' => 'required|exists:roles,id',
-            // Student specific fields
-            'nim' => 'required_if:role_name,mahasiswa|nullable|string|unique:students',
-            'prodi_id' => 'required_if:role_name,mahasiswa|nullable|exists:majors,id',
-            // Lecturer specific fields
-            'nidn' => 'required_if:role_name,dosen|nullable|string|unique:lecturers',
-        ]);
-
         $role = Role::find($request->role_id);
         $roleName = strtolower($role->name);
 
@@ -67,7 +55,8 @@ class UserController extends Controller
                     'status' => 'Aktif',
                     'angkatan' => $request->angkatan ?? date('Y'),
                 ]);
-            } elseif ($roleName === 'dosen') {
+            }
+            elseif ($roleName === 'dosen') {
                 Lecturer::create([
                     'user_id' => $user->id,
                     'nidn' => $request->nidn,
@@ -80,20 +69,20 @@ class UserController extends Controller
                 'success' => true,
                 'message' => 'User berhasil dibuat',
                 'data' => $user->load(['role', 'student', 'lecturer'])
-            ]);
+            ], 201);
         });
     }
 
-    public function update(Request $request, User $user)
+    public function show(User $user)
     {
-        $request->validate([
-            'username' => ['required', 'string', Rule::unique('users')->ignore($user->id)],
-            'name' => 'required|string',
-            'email' => ['required', 'email', Rule::unique('users')->ignore($user->id)],
-            'password' => 'nullable|string|min:6',
-            'role_id' => 'required|exists:roles,id',
+        return response()->json([
+            'success' => true,
+            'data' => $user->load(['role', 'student', 'lecturer'])
         ]);
+    }
 
+    public function update(UpdateUserRequest $request, User $user)
+    {
         $user->update([
             'username' => $request->username,
             'name' => $request->name,
@@ -101,7 +90,7 @@ class UserController extends Controller
             'role_id' => $request->role_id,
         ]);
 
-        if ($request->password) {
+        if ($request->filled('password')) {
             $user->update(['password' => Hash::make($request->password)]);
         }
 
@@ -114,10 +103,12 @@ class UserController extends Controller
 
     public function destroy(User $user)
     {
-        // Transaction to ensure related records are cleaned up or handled
         return DB::transaction(function () use ($user) {
-            if ($user->student) $user->student->delete();
-            if ($user->lecturer) $user->lecturer->delete();
+            if ($user->student)
+                $user->student->delete();
+            if ($user->lecturer)
+                $user->lecturer->delete();
+            $user->tokens()->delete();
             $user->delete();
 
             return response()->json([

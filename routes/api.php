@@ -10,14 +10,14 @@ use App\Http\Controllers\Api\Admin\MajorController;
 use App\Http\Controllers\Api\Admin\CourseController;
 use App\Http\Controllers\Api\Admin\SemesterController;
 use App\Http\Controllers\Api\Admin\ClassController;
-use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 
-// Public routes
+// Public routes - rate limiting ditangani manual di AuthController
 Route::post('/login', [AuthController::class , 'login']);
 
-// Protected routes
-Route::middleware('auth:sanctum')->group(function () {
+
+// Protected routes with global API rate limiting (60 requests/minute)
+Route::middleware(['auth:sanctum', 'throttle:api'])->group(function () {
     // Auth routes
     Route::post('/logout', [AuthController::class , 'logout']);
     Route::get('/me', [AuthController::class , 'me']);
@@ -42,7 +42,7 @@ Route::middleware('auth:sanctum')->group(function () {
 
         // Admin routes
         Route::prefix('admin')->group(function () {
-            Route::get('roles', [UserController::class, 'roles']);
+            Route::get('roles', [UserController::class , 'roles']);
             Route::apiResource('users', UserController::class);
             Route::apiResource('faculties', FacultyController::class);
             Route::apiResource('majors', MajorController::class);
