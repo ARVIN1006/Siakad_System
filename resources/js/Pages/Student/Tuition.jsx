@@ -18,30 +18,8 @@ const Tuition = () => {
     useEffect(() => {
         const fetchTuitions = async () => {
             try {
-                // In a real app, this would be an API call
-                // For now, let's simulate the data based on the ERD
-                const mockData = [
-                    {
-                        id: 1,
-                        semester: "Semester Genap 2025",
-                        jenis: "UKT Tetap",
-                        jumlah: 5000000,
-                        status: "Belum Bayar",
-                        jatuh_tempo: "15 Feb 2026",
-                        va: "8801234567890",
-                    },
-                    {
-                        id: 2,
-                        semester: "Semester Ganjil 2024",
-                        jenis: "UKT Tetap",
-                        jumlah: 5000000,
-                        status: "Lunas",
-                        jatuh_tempo: "15 Aug 2024",
-                        va: "8801234567890",
-                        tanggal_bayar: "10 Aug 2024",
-                    },
-                ];
-                setTuitions(mockData);
+                const response = await axios.get("/api/student/tuition");
+                setTuitions(response.data.data);
             } catch (err) {
                 console.error("Failed to fetch tuitions", err);
             } finally {

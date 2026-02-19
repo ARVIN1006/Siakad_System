@@ -3,7 +3,9 @@
 use App\Http\Controllers\Api\AuthController;
 use App\Http\Controllers\Api\Student\ProfileController;
 use App\Http\Controllers\Api\Student\KrsController;
+use App\Http\Controllers\Api\Student\TuitionController;
 use App\Http\Controllers\Api\Lecturer\GradeController;
+use App\Http\Controllers\Api\Lecturer\KrsApprovalController;
 use App\Http\Controllers\Api\Admin\UserController;
 use App\Http\Controllers\Api\Admin\FacultyController;
 use App\Http\Controllers\Api\Admin\MajorController;
@@ -14,7 +16,6 @@ use Illuminate\Support\Facades\Route;
 
 // Public routes - rate limiting ditangani manual di AuthController
 Route::post('/login', [AuthController::class , 'login']);
-
 
 // Protected routes with global API rate limiting (60 requests/minute)
 Route::middleware(['auth:sanctum', 'throttle:api'])->group(function () {
@@ -29,6 +30,7 @@ Route::middleware(['auth:sanctum', 'throttle:api'])->group(function () {
             Route::get('/krs', [KrsController::class , 'index']);
             Route::post('/krs', [KrsController::class , 'store']);
             Route::get('/khs', [KrsController::class , 'khs']);
+            Route::get('/tuition', [TuitionController::class , 'index']);
         }
         );
 
@@ -37,6 +39,9 @@ Route::middleware(['auth:sanctum', 'throttle:api'])->group(function () {
             Route::get('/classes', [GradeController::class , 'classes']);
             Route::get('/classes/{id}/students', [GradeController::class , 'students']);
             Route::post('/grades', [GradeController::class , 'store']);
+            Route::get('/krs-approval', [KrsApprovalController::class , 'index']);
+            Route::post('/krs-approval/{id}/approve', [KrsApprovalController::class , 'approve']);
+            Route::post('/krs-approval/{id}/reject', [KrsApprovalController::class , 'reject']);
         }
         );
 
