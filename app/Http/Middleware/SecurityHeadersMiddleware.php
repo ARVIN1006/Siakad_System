@@ -29,23 +29,37 @@ class SecurityHeadersMiddleware
         // Control referrer information sent with requests
         $response->headers->set('Referrer-Policy', 'strict-origin-when-cross-origin');
 
-        // Content Security Policy - restrict resource loading to same origin
-        $response->headers->set(
-            'Content-Security-Policy',
-            "default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline'; img-src 'self' data:; font-src 'self'; connect-src 'self'; frame-ancestors 'none';"
-        );
+        if ($request->is('api/*')) {
+            // ─── API Routes: CSP sangat ketat (tidak ada inline script) ──────────
+            $response->headers->set(
+                'Content-Security-Policy',
+                "default-src 'none'; frame-ancestors 'none';"
+            );
+
+            // Cegah caching response sensitif di API
+            $response->headers->set('Cache-Control', 'no-store, no-cache, must-revalidate, private');
+            $response->headers->set('Pragma', 'no-cache');
+        }
+        else {
+            // ─── Web/Frontend Routes: CSP lebih longgar untuk Inertia.js/React ──
+            // 'unsafe-inline' dibutuhkan oleh Vite/React untuk inline scripts
+            $response->headers->set(
+                'Content-Security-Policy',
+                "default-src 'self'; " .
+                "script-src 'self' 'unsafe-inline' 'unsafe-eval'; " .
+                "style-src 'self' 'unsafe-inline'; " .
+                "img-src 'self' data: blob:; " .
+                "font-src 'self' data:; " .
+                "connect-src 'self' ws: wss:; " . // ws/wss untuk Vite HMR
+                "frame-ancestors 'none';"
+            );
+        }
 
         // Restrict browser features/permissions
         $response->headers->set(
             'Permissions-Policy',
             'geolocation=(), camera=(), microphone=(), payment=(), usb=()'
         );
-
-        // Prevent caching of sensitive API responses
-        if ($request->is('api/*')) {
-            $response->headers->set('Cache-Control', 'no-store, no-cache, must-revalidate, private');
-            $response->headers->set('Pragma', 'no-cache');
-        }
 
         // Remove server info headers (hide implementation details)
         $response->headers->remove('X-Powered-By');
