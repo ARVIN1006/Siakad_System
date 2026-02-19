@@ -3,23 +3,22 @@
 use App\Http\Controllers\Api\AuthController;
 use App\Http\Controllers\Api\Student\ProfileController;
 use App\Http\Controllers\Api\Student\KrsController;
+use App\Http\Controllers\Api\Student\TuitionController;
 use App\Http\Controllers\Api\Lecturer\GradeController;
+use App\Http\Controllers\Api\Lecturer\KrsApprovalController;
 use App\Http\Controllers\Api\Admin\UserController;
 use App\Http\Controllers\Api\Admin\FacultyController;
 use App\Http\Controllers\Api\Admin\MajorController;
 use App\Http\Controllers\Api\Admin\CourseController;
 use App\Http\Controllers\Api\Admin\SemesterController;
 use App\Http\Controllers\Api\Admin\ClassController;
-use App\Http\Controllers\Api\Student\TuitionController;
-use App\Http\Controllers\Api\Lecturer\KrsApprovalController;
-use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 
-// Public routes
+// Public routes - rate limiting ditangani manual di AuthController
 Route::post('/login', [AuthController::class , 'login']);
 
-// Protected routes
-Route::middleware('auth:sanctum')->group(function () {
+// Protected routes with global API rate limiting (60 requests/minute)
+Route::middleware(['auth:sanctum', 'throttle:api'])->group(function () {
     // Auth routes
     Route::post('/logout', [AuthController::class , 'logout']);
     Route::get('/me', [AuthController::class , 'me']);
@@ -31,7 +30,7 @@ Route::middleware('auth:sanctum')->group(function () {
             Route::get('/krs', [KrsController::class , 'index']);
             Route::post('/krs', [KrsController::class , 'store']);
             Route::get('/khs', [KrsController::class , 'khs']);
-            Route::get('/tuition', [TuitionController::class, 'index']);
+            Route::get('/tuition', [TuitionController::class , 'index']);
         }
         );
 
@@ -39,17 +38,16 @@ Route::middleware('auth:sanctum')->group(function () {
         Route::prefix('lecturer')->group(function () {
             Route::get('/classes', [GradeController::class , 'classes']);
             Route::get('/classes/{id}/students', [GradeController::class , 'students']);
-            Route::get('/classes/{id}/students', [GradeController::class , 'students']);
             Route::post('/grades', [GradeController::class , 'store']);
-            Route::get('/krs-approval', [KrsApprovalController::class, 'index']);
-            Route::post('/krs-approval/{id}/approve', [KrsApprovalController::class, 'approve']);
-            Route::post('/krs-approval/{id}/reject', [KrsApprovalController::class, 'reject']);
+            Route::get('/krs-approval', [KrsApprovalController::class , 'index']);
+            Route::post('/krs-approval/{id}/approve', [KrsApprovalController::class , 'approve']);
+            Route::post('/krs-approval/{id}/reject', [KrsApprovalController::class , 'reject']);
         }
         );
 
         // Admin routes
         Route::prefix('admin')->group(function () {
-            Route::get('roles', [UserController::class, 'roles']);
+            Route::get('roles', [UserController::class , 'roles']);
             Route::apiResource('users', UserController::class);
             Route::apiResource('faculties', FacultyController::class);
             Route::apiResource('majors', MajorController::class);
